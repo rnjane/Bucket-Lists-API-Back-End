@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8" />
+	<title>Bucket-List App | My Bucket-Lists</title>
+	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+	<meta content="" name="description" />
+	<meta content="" name="author" />
+	
+	<!-- ================== BEGIN BASE CSS STYLE ================== -->
+	<link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+	<link href="{{ url_for('static', filename = 'plugins/jquery-ui/themes/base/minified/jquery-ui.min.css') }}" rel="stylesheet" />
+	<link href="{{ url_for('static', filename = 'plugins/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet" />
+	<link href="{{ url_for('static', filename = 'css/style.min.css') }}" rel="stylesheet" id="theme" />
+	<!-- ================== END BASE CSS STYLE ================== -->
+	
+</head>
+<body>
+	<!-- begin #page-loader -->
+	<div id="page-loader" class="fade in"><span class="spinner"></span></div>
+	<!-- end #page-loader -->
+	
+	<!-- begin #page-container -->
+	<div id="page-container" class="fade page-without-sidebar page-header-fixed">
+		<!-- begin #header -->
+		<div id="header" class="header navbar navbar-default navbar-fixed-top">
+			<!-- begin container-fluid -->
+			<div class="container-fluid">
+				<!-- begin mobile sidebar expand / collapse button -->
+				<div class="navbar-header">
+					<a href="{{ url_for('bucketlists') }} " class="navbar-brand"><span class="navbar-logo"></span>Bucket List App</a>
+					<button type="button" class="navbar-toggle" data-click="sidebar-toggled">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+				</div>
+				<!-- end mobile sidebar expand / collapse button -->
+				
+				<!-- begin header navigation right -->
+				<ul class="nav navbar-nav navbar-right">
+					<li class="dropdown navbar-user">
+						<a href="{{ url_for('logout') }}" class="dropdown-toggle" data-toggle="dropdown">
+							<span class="hidden-xs">Logout</span></b>
+						</a>
+					</li>
+				</ul>
+				<!-- end header navigation right -->
+				
+			</div>
+			<!-- end container-fluid -->
+		</div>
+		<!-- end #header -->
+		
+		<!-- begin #content -->
+		<div id="content" class="container">
+			<!-- begin page-header -->
+			<h1 class="page-header"><small></small></h1>
+			<!-- end page-header -->
+			
+			<div class="panel panel-inverse">
+			    <div class="panel-heading">
+					
+			        <h2 class="panel-title">Delete Bucket List</h2>
+			    </div>
+				
+				
+				
+			    <div class="panel panel-inverse" data-sortable-id="form-stuff-4">
+ 
+                        <div class="panel-body">
+                            <form class="form-horizontal" action="{{ url_for('deletebuket') }}" method="POST">
+                                <fieldset>
+                                    <legend>Edit</legend>
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label">Delete Bucket</label>
+                                        <div class="col-md-8">
+                                            {{ form.name(class_ = "form-control", value = blist, required = "True", readonly = 'readonly') }}
+                                        </div>
+                                    </div>                            
+                                    <div class="form-group">
+                                        <div class="col-md-8 col-md-offset-4">
+                                            <button type="submit" class="btn btn-sm btn-primary m-r-5">Delete</button>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- end panel -->
+						
+						
+					</div>
+                    <!-- end panel -->
+			        </p>
+			    </div>
+			</div>
+            
+		</div>
+		<!-- end #content -->
+		
+	</div>
+	<!-- end page container -->
+	
+	<!-- ================== BEGIN BASE JS ================== -->
+	<script src="{{ url_for('static', filename = 'plugins/jquery/jquery-1.9.1.min.js') }}"></script>
+	<script src="{{ url_for('static', filename = 'plugins/bootstrap/js/bootstrap.min.js') }}"></script>
+	<!-- ================== END BASE JS ================== -->
+	
+	<!-- ================== BEGIN PAGE LEVEL JS ================== -->
+	<script src="{{ url_for('static', filename = 'js/apps.min.js') }}"></script>
+	<!-- ================== END PAGE LEVEL JS ================== -->
+	
+	<script>
+		$(document).ready(function() {
+			App.init();
+		});
+	</script>
+</body>
+</html>
