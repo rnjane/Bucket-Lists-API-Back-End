@@ -1,5 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, flash, session, request, current_app
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
+from flask import Flask, render_template, redirect, url_for
+from flask import flash, session, request, current_app
+from flask_login import LoginManager, login_user, login_required
+from flask_login import logout_user, current_user, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from app import forms
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -144,14 +146,16 @@ item = Items()
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-	
+
 @app.route('/')
 def index():
+    '''Home page'''
     return redirect(url_for('bucketlists'))
 
-	
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    '''method to log in users'''
     form = forms.LoginForm()
     if form.validate_on_submit():
         if user.login_user(form.username.data, form.password.data) == 'login succesful':
@@ -167,6 +171,7 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    '''method to register new users'''
     form = forms.RegisterForm()
     if request.method == 'POST':
         if form.validate_on_submit():
@@ -190,6 +195,7 @@ def register():
 @app.route('/logout')
 @login_required
 def logout():
+    '''method to log users out'''
     if user.logout() == 'logout succesful':
         return redirect(url_for('login'))
     flash('error logging out')
@@ -198,10 +204,11 @@ def logout():
 
 @app.route('/auto_login')
 def auto_login():
-    user = ( User
-             .query
-             .filter_by(username="testduplicate")
-             .first() )
+    '''auto login function - to test login functionality'''
+    user = (User
+            .query
+            .filter_by(username="testduplicate")
+            .first())
     login_user(user, remember=True)
     return "ok"
 
@@ -209,11 +216,12 @@ def auto_login():
 @app.route('/bucketlists')
 @login_required
 def bucketlists():
-    addform = forms.NewBucketList()
-    editform = forms.EditBucket()
-    deleteform = forms.DeleteBucket()
+    '''View all bucket lists'''
+    af = forms.NewBucketList()
+    ef = forms.EditBucket()
+    df = forms.DeleteBucket()
     buckets = bucket.view_buckets()
-    return render_template('bucketlists.html', buckets=buckets, name=current_user.username, addform=addform, editform=editform, deleteform=deleteform)
+    return render_template('bucketlists.html', buckets=buckets, name=current_user.username, addform=af, editform=ef, deleteform=df)
 
 
 @app.route('/bucketlists/addbucket', methods=['POST', 'GET'])
@@ -254,11 +262,11 @@ def editbuket():
 def viewitems(b_key):
     '''View items in a bucket list'''
     session['currentbucket'] = b_key
-    addform = forms.NewItem()
-    editform = forms.EditItem()
-    deleteform = forms.DeleteItem()
+    af = forms.NewItem()
+    ef = forms.EditItem()
+    df = forms.DeleteItem()
     items = item.view_items()
-    return render_template('tasks.html', items=items, addform=addform, editform=editform, deleteform=deleteform, blist=b_key)
+    return render_template('tasks.html', items=items, addform=af, editform=ef, deleteform=df, blist=b_key)
 
 
 @app.route('/items/additem', methods=['POST', 'GET'])
