@@ -27,7 +27,7 @@ class ViewTest(unittest.TestCase):
 
 class UserTest(unittest.TestCase):
     '''Tests for user functionalities'''
-    def test_register_works(self):
+    def test_register_succesful(self):
         '''Tests if register functionality works'''
         if user.create_user('testuser', 'testpassword') == 'account created':
             register_works = True
@@ -44,7 +44,7 @@ class UserTest(unittest.TestCase):
             add_duplicate_user = False
         self.assertEqual(add_duplicate_user, False)
 
-    def test_user_exists(self):
+    def test_login_wrongcredentials(self):
         '''Test user exists before login'''
         user_exists = user.login_user('nouserlikethis', 'nopasslikethis')
         self.assertEqual(user_exists, 'Invalid username or password')
