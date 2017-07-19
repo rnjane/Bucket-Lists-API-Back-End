@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, session, request
+from flask import Flask, render_template, redirect, url_for, flash, session, request, current_app
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from app import forms
@@ -11,7 +11,6 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -39,7 +38,7 @@ class Users():
     '''This class defines actions related to the users of the app'''
     __username = ''
     __password = ''
-    def createUser(username, password):
+    def create_user(self, username, password):
         '''Method to register users'''
         if type(username) is list or type(username) is dict:
             return 'wrong data format'
@@ -52,16 +51,17 @@ class Users():
         return 'account created'
 
 
-    def login_user(username, password):
+    def login_user(self, username, password):
         '''Method to log users in'''
         user = User.query.filter_by(username=username).first()
         if user:
             if check_password_hash(user.password, password):
                 login_user(user, remember=True)
                 return 'login succesful'
+            return 'Wrong password'
         return 'Invalid username or password'
 
-    def logout():
+    def logout(self):
         '''log out method'''
         logout_user()
         return 'logout succesful'
@@ -72,27 +72,27 @@ class BucketLists():
     __name = ''
     __username = ''
 
-    def create_bucket(bucketname):
+    def create_bucket(self, bucketname):
         '''add a bucket method'''
         new_bucket = Bucket(bucketname=bucketname, user=current_user)
         db.session.add(new_bucket)
         db.session.commit()
         return 'bucket added.'
 
-    def view_buckets():
+    def view_buckets(self):
         '''view all buckets method'''
         user = User.query.filter_by(username=current_user.username).first()
         buckets = user.buckets.all()
         return buckets
 
-    def delete_bucket(bucketname):
+    def delete_bucket(self, bucketname):
         '''delete a bucket method'''
         bucket = Bucket.query.filter_by(bucketname=bucketname).first()
         db.session.delete(bucket)
         db.session.commit()
         return 'delete succesful'
 
-    def edit_bucket(oldname, newname):
+    def edit_bucket(self, oldname, newname):
         '''edit a bucket method'''
         bucket = Bucket.query.filter_by(bucketname=oldname).first()
         bucket.bucketname = newname
@@ -101,10 +101,11 @@ class BucketLists():
 
 
 class Items():
+    '''Class definition for the items classs'''
     __itemname = ''
     __itemlist = ''
 
-    def create_item(itemname):
+    def create_item(self, itemname):
         '''create item method'''
         name = session['currentbucket']
         current_bucket = Bucket.query.filter_by(bucketname=name).first()
@@ -113,26 +114,31 @@ class Items():
         db.session.commit()
         return 'item added.'
 
-    def view_items():
+    def view_items(self):
         '''view all items method'''
         bucket = Bucket.query.filter_by(bucketname=session['currentbucket']).first()
         items = bucket.items.all()
         return items
 
-    def delete_item(itemname):
+    def delete_item(self, itemname):
         '''delete an item method'''
         item = Item.query.filter_by(itemname=itemname).first()
         db.session.delete(item)
         db.session.commit()
         return 'delete succesful'
 
-    def edit_item(oldname, newname, status):
+    def edit_item(self, oldname, newname, status):
         '''edit item method'''
         item = Item.query.filter_by(itemname=oldname).first()
         item.itemname = newname
         item.status = status
         db.session.commit()
         return 'edit succesful'
+
+user = Users()
+bucket = BucketLists()
+item = Items()
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -148,9 +154,12 @@ def index():
 def login():
     form = forms.LoginForm()
     if form.validate_on_submit():
-        if Users.login_user(form.username.data, form.password.data) == 'login succesful':
+        if user.login_user(form.username.data, form.password.data) == 'login succesful':
             return redirect(url_for('bucketlists'))
-        elif Users.login_user(form.username.data, form.password.data) == 'Invalid username or password':
+        elif user.login_user(form.username.data, form.password.data) == 'Wrong password':
+            flash('Wrong password')
+            return render_template('login.html', form=form)
+        elif user.login_user(form.username.data, form.password.data) == 'Invalid username or password':
             flash('Invalid username or password')
             return render_template('login.html', form=form)
     return render_template('login.html', form=form)
@@ -159,30 +168,42 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = forms.RegisterForm()
-    if form.validate_on_submit():
-        if type(form.username.data) is list or type(form.username.data) is dict:
-            flash('wrong data format')
-            return render_template('register.html', form=form)
-        if User.query.filter_by(username=form.username.data).first() is not None:
-            flash('username in use. use a different one.')
-            return render_template('register.html', form=form)
-        hashed_password = generate_password_hash(form.password.data, method='sha256')
-        new_user = User(username=form.username.data, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        flash('Account created. Login to your account.')
-        return redirect(url_for('login'))
-    flash('error in file')
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            if form.password.data != form.confirmpassword.data:
+                flash('passwords dont match')
+                return render_template('register.html', form=form)
+            elif user.create_user(form.username.data, form.password.data) == 'account created':
+                flash('account created')
+                return redirect(url_for('login'))
+            elif user.create_user(form.username.data, form.password.data) == 'wrong data format':
+                flash('wrong data format')
+                return render_template('register.html', form=form)
+            elif user.create_user(form.username.data, form.password.data) == 'username in use. use a different one.':
+                flash('username in use. use a different one.')
+                return render_template('register.html', form=form)
+        flash('error in form')
+        return render_template('register.html', form=form)
     return render_template('register.html', form=form)
 
 
 @app.route('/logout')
 @login_required
 def logout():
-    if Users.logout() == 'logout succesful':
+    if user.logout() == 'logout succesful':
         return redirect(url_for('login'))
     flash('error logging out')
     return redirect(url_for('bucketlists'))
+
+
+@app.route('/auto_login')
+def auto_login():
+    user = ( User
+             .query
+             .filter_by(username="testduplicate")
+             .first() )
+    login_user(user, remember=True)
+    return "ok"
 
 
 @app.route('/bucketlists')
@@ -191,7 +212,7 @@ def bucketlists():
     addform = forms.NewBucketList()
     editform = forms.EditBucket()
     deleteform = forms.DeleteBucket()
-    buckets = BucketLists.view_buckets()
+    buckets = bucket.view_buckets()
     return render_template('bucketlists.html', buckets=buckets, name=current_user.username, addform=addform, editform=editform, deleteform=deleteform)
 
 
@@ -201,7 +222,7 @@ def addbucket():
     '''Add Bucket lists function'''
     form = forms.NewBucketList()
     if form.validate_on_submit():
-        if BucketLists.create_bucket(form.bucketname.data) == 'bucket added.':
+        if bucket.create_bucket(form.bucketname.data) == 'bucket added.':
             flash('Bucket added.')
             return redirect(url_for('bucketlists'))
     flash('Invalid bucket list name')
@@ -212,7 +233,7 @@ def addbucket():
 @login_required
 def deletebuket():
     '''delete bucket'''
-    if BucketLists.delete_bucket(request.form['bucketname']) == 'delete succesful':
+    if bucket.delete_bucket(request.form['bucketname']) == 'delete succesful':
         return redirect(url_for('bucketlists'))
     flash('error deleting bucket')
     return redirect(url_for('bucketlists'))
@@ -222,7 +243,7 @@ def deletebuket():
 @login_required
 def editbuket():
     '''edit bucket'''
-    if BucketLists.edit_bucket(request.form['bucketname'], request.form['newname']) == 'edit succesful':
+    if bucket.edit_bucket(request.form['bucketname'], request.form['newname']) == 'edit succesful':
         return redirect(url_for('bucketlists'))
     flash('error editing bucket')
     return redirect(url_for('bucketlists'))
@@ -236,7 +257,7 @@ def viewitems(b_key):
     addform = forms.NewItem()
     editform = forms.EditItem()
     deleteform = forms.DeleteItem()
-    items = Items.view_items()
+    items = item.view_items()
     return render_template('tasks.html', items=items, addform=addform, editform=editform, deleteform=deleteform, blist=b_key)
 
 
@@ -244,7 +265,7 @@ def viewitems(b_key):
 @login_required
 def additem():
     '''Add item function'''
-    if Items.create_item(request.form['itemname']) == 'item added.':
+    if item.create_item(request.form['itemname']) == 'item added.':
         flash('Item added.')
         return redirect(url_for('viewitems', b_key=session['currentbucket']))
     flash('Illegal item name.')
@@ -256,7 +277,7 @@ def additem():
 def edititem():
     '''Edit item function'''
     form = forms.EditItem()
-    if Items.edit_item(request.form['bucketname'], request.form['newname'], request.form['status']) == 'edit succesful':
+    if item.edit_item(request.form['bucketname'], request.form['newname'], request.form['status']) == 'edit succesful':
         return redirect(url_for('viewitems', b_key=session['currentbucket']))
     flash('error in edit form')
     return redirect(url_for('viewitems', b_key=session['currentbucket']))
@@ -266,7 +287,7 @@ def edititem():
 @login_required
 def removeitem():
     '''Remove item function'''
-    if Items.delete_item(request.form['itemname']) == 'delete succesful':
+    if item.delete_item(request.form['itemname']) == 'delete succesful':
         return redirect(url_for('viewitems', b_key=session['currentbucket']))
     flash('error deleting item')
     return redirect(url_for('viewitems', b_key=session['currentbucket']))
