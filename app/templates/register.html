@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Bucket Lists App | Register Page</title>
+	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+
+    <!-- ================== BEGIN BASE CSS STYLE ================== -->
+	<link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+	<link href="{{ url_for('static', filename = 'plugins/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet" />
+	<link href="{{ url_for('static', filename = 'css/style.min.css') }}" rel="stylesheet" />
+	<!-- ================== END BASE CSS STYLE ================== -->
+
+</head>
+<body>
+	<div id="page-container">
+        <div class="register register-with-news-feed">
+
+            <!-- welcome text -->
+            <div class="news-feed">
+                <div class="news-image">
+                    <img src="{{ url_for('static', filename = 'img/bg-7.jpg') }}" alt="" />
+                </div>
+                <div class="news-caption">
+                    <h4 class="caption-title">Bucket Lists App</h4>
+                    <p>
+                        Keep Track of things you want to do, before its too late.
+                    </p>
+                </div>
+            </div>
+            <!-- end welcome text -->
+
+            <!-- begin register-panel -->
+            <div class="right-content">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-warning alert-dismissible" role="alert">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                <h1 class="register-header">
+                    Sign Up
+                </h1>
+                <div class="register-content">
+                    <form action="" method="POST" class="margin-bottom-0">
+                        {{ form.hidden_tag() }}
+                        <label class="control-label">Username</label>
+                        <div class="row m-b-15">
+                            <div class="col-md-12">
+                                {{ form.username(class_ = "form-control", placeholder = "User Name", required = "True") }}
+                            </div>
+                        </div>
+                        <label class="control-label">Password</label>
+                        <div class="row m-b-15">
+                            <div class="col-md-12">
+                                {{ form.password(class_ = "form-control", placeholder = "Password", required = "True") }}
+                            </div>
+                        </div>
+                        <label class="control-label">Confirm Password</label>
+                        <div class="row m-b-15">
+                            <div class="col-md-12">
+                                {{ form.confirmpassword(class_ = "form-control", placeholder = "Confirm Password", required = "True") }}
+                            </div>
+                        </div>
+                        <div class="register-buttons">
+                            <button type="submit" class="btn btn-primary btn-block btn-lg">Sign Up</button>
+                        </div>
+                        <div class="m-t-20 m-b-40 p-b-40">
+                            Already a member? Click <a href="{{ url_for('login') }}">here</a> to login.
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- end register-panel -->
+        </div>
+    </div>
+</body>
+</html>
