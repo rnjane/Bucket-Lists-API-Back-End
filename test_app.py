@@ -103,9 +103,14 @@ class BucketListTest(BaseTestCase):
                 data=dict(username="testuser", password="testpassword"),
                 follow_redirects=True
             )
+            self.app.post(
+                '/bucketlists/addbucket',
+                data=dict(bucketname="testbucketedit"),
+                follow_redirects=True
+            )
             response = self.app.post(
                 '/bucketlist/edit',
-                data=dict(bucketname="testbucket", newname="newtestbucket"),
+                data=dict(bucketname="testbucketedit", newname="newtesteditbucket"),
                 follow_redirects=True
             )
             self.assertIn(b'Edit succesful', response.data)
@@ -118,9 +123,14 @@ class BucketListTest(BaseTestCase):
                 data=dict(username="testuser", password="testpassword"),
                 follow_redirects=True
             )
+            self.app.post(
+                '/bucketlists/addbucket',
+                data=dict(bucketname="testdeletebucket"),
+                follow_redirects=True
+            )
             response = self.app.post(
                 '/bucketlist/delete',
-                data=dict(bucketname="testbucket"),
+                data=dict(bucketname="testdeletebucket"),
                 follow_redirects=True
             )
             self.assertIn(b'delete succesful', response.data)
@@ -171,9 +181,14 @@ class ItemsTest(BaseTestCase):
             self.app.get(
                 '/bucketlists/testbucket/items'
             )
+            self.app.post(
+                '/items/additem',
+                data=dict(itemname="testedititem"),
+                follow_redirects=True
+            )
             response = self.app.post(
                 '/items/edititem',
-                data=dict(bucketname="testitem", newname="newtestname", status="Not Done"),
+                data=dict(bucketname="testedititem", newname="newtestedititem", status="Not Done"),
                 follow_redirects=True
             )
             self.assertEqual(response.status_code, 200)
@@ -190,10 +205,15 @@ class ItemsTest(BaseTestCase):
             self.app.get(
                 '/bucketlists/testbucket/items'
             )
+            self.app.post(
+                '/items/additem',
+                data=dict(itemname="testdeleteitem"),
+                follow_redirects=True
+            )
             response = self.app.post(
                 '/items/removeitem',
-                data=dict(itemname="testitem", newname="newtestname", status="Not Done"),
+                data=dict(itemname="testdeleteitem"),
                 follow_redirects=True
             )
             self.assertEqual(response.status_code, 200)
-            self.assertIn(b'edit succesful', response.data)
+            self.assertIn(b'delete successful', response.data)
