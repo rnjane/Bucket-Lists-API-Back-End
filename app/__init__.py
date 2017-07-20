@@ -157,6 +157,8 @@ def index():
 def login():
     '''method to log in users'''
     form = forms.LoginForm()
+    if request.method == "GET":
+        return render_template('login.html', form=form)
     if user.login_user(form.username.data, form.password.data) == 'login succesful':
         flash('login succeful')
         return redirect(url_for('bucketlists'))
