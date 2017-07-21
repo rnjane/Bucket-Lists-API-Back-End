@@ -8,26 +8,13 @@ bucket = BucketLists()
 item = Items()
 
 
-class BaseTestCase(unittest.TestCase):
+class BucketListTest(unittest.TestCase):
     '''Set up testing'''
     def setUp(self):
         self.app = app.app.test_client()
 
-  
-class BasicTests(BaseTestCase):
-    '''Tests on flask setup'''
-    def test_index(self):
-        '''Ensure that Flask was set up correctly'''
-        response = self.app.get('/', follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
 
-    def test_main_route_requires_login(self):
-        '''Ensure that buckets page requires user login'''
-        response = self.app.get('/bucketlists', follow_redirects=True)
-        self.assertIn(b'Please log in to access this page', response.data)
-
-
-class UserTest(BaseTestCase):
+class UserTest(BucketListTest):
     '''Tests for user functionalities'''
     def test_register_succesful(self):
         '''Tests if register functionality works'''
@@ -68,7 +55,7 @@ class UserTest(BaseTestCase):
         check = user.create_user([], 'jj')
         self.assertEqual(check, 'wrong data format')
 
-class BucketListTest(BaseTestCase):
+class BucketListsTest(BucketListTest):
     '''Tests for the Bucket List Class'''
     def test_addbucket_succesful(self):
         '''Tests if add bucket functionality works'''
@@ -136,7 +123,7 @@ class BucketListTest(BaseTestCase):
             self.assertIn(b'delete succesful', response.data)
 
 
-class ItemsTest(BaseTestCase):
+class ItemsTest(BucketListTest):
     '''Tests for the Bucket List Class'''
     def test_itemadd_succesful(self):
         '''Tests if add bucket functionality works'''
