@@ -1,5 +1,5 @@
 [![Coverage Status](https://coveralls.io/repos/github/rnjane/BucketLists-API/badge.svg?branch=develop)](https://coveralls.io/github/rnjane/BucketLists-API?branch=develop)
-[![Build Status](https://travis-ci.org/rnjane/BucketLists-API.svg?branch=master)](https://travis-ci.org/rnjane/BucketLists-API)
+[![Build Status](https://travis-ci.org/rnjane/BucketLists-API.svg?branch=develop)](https://travis-ci.org/rnjane/BucketLists-API)
 # Introduction
 
 * **Bucket Lists App** is a Flask Powered Bucket Lists App. Bucket List app helps users record things they want to achieve or experience before reaching a certain age.
