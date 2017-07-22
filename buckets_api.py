@@ -6,9 +6,9 @@ import datetime
 from functools import wraps
 
 
-user = Users()
-bucket = BucketLists()
-item = Items()
+user = User()
+bucket = Bucket()
+item = Item()
 
 app = Flask(__name__)
 
@@ -51,7 +51,6 @@ def login():
     if not user:
         return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
     if check_password_hash(user.password, auth.password):
-        #some': 'payload'}, 'secret', algorithm='HS256')
         token = jwt.encode({'username' : user.username, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
         return jsonify({'token' : token.decode('UTF-8')})
     return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
@@ -59,10 +58,10 @@ def login():
 
 @app.route('/bucketlists/<bktname>', methods=['POST'])
 @token_required
-def create_bucket(current_user):
+def create_bucket(current_user, bktname):
     '''create a new bucket'''
     data = request.get_json()
-    new_bucket = Bucket(bucketname=data['bucketname'], user_id=current_user.id)
+    new_bucket = Bucket(bucketname=bktname, user_id=current_user.id)
     db.session.add(new_bucket)
     db.session.commit()
     return jsonify({'message' : "Bucket created!"})
@@ -75,28 +74,33 @@ def get_buckets(current_user):
     buckets = Bucket.query.filter_by(user_id=current_user.id).all()
     output = []
     for bucket in buckets:
-        output.append(bucket)
+        bucket_info = {}
+        bucket_info['User ID'] = bucket.user_id
+        bucket_info['Bucket Name'] = bucket.bucketname
+        bucket_info['Bucket ID'] = bucket.id
+        output.append(bucket_info)
     return jsonify({'Buckets' : output})
 
 
-@app.route('/bucketlists/<bktname>', methods=['GET'])
+@app.route('/bucketlists/<bktid>', methods=['GET'])
 @token_required
-def get_bucket(current_user, bktname):
+def get_bucket(current_user, bktid):
     '''return one bucket of the logged in user'''
-    bucket = Bucket.query.filter_by(bucketname=bktname, user_id=current_user.id).first()
+    bucket = Bucket.query.filter_by(id=bktname).first()
     if not bucket:
         return jsonify({'message' : 'No bucket found!'})
     bucket_data = {}
-    bucket_data['User'] = bucket.user_id
+    bucket_data['User Id'] = bucket.user_id
     bucket_data['Bucket Name'] = bucket.bucketname
+    bucket_data['Bucket ID'] = bucket.id
     return jsonify(bucket_data)
 
 
-@app.route('/bucketlists/<bktname>', methods=['DELETE'])
+@app.route('/bucketlists/<bktid>', methods=['DELETE'])
 @token_required
-def delete_bucket(current_user, bucketname):
+def delete_bucket(current_user, bktid):
     '''delete a bucket list'''
-    bucket = Bucket.query.filter_by(bucketname=bucketname, user_id=current_user.id).first()
+    bucket = Bucket.query.filter_by(id=bktid).first()
     if not bucket:
         return jsonify({'message' : 'No bucket found!'})
     db.session.delete(bucket)
@@ -104,12 +108,12 @@ def delete_bucket(current_user, bucketname):
     return jsonify({'message' : 'Bucket list deleted!'})
 
 
-@app.route('/bucketlists/<bktname>', methods=['PUT'])
+@app.route('/bucketlists/<bktid>', methods=['PUT'])
 @token_required
-def edit_bucket(current_user, bktname):
+def edit_bucket(current_user, bktid):
     '''edit a bucket list'''
     data = request.get_json()
-    bucket = Bucket.query.filter_by(bucketname=bktname, user_id=current_user.id).first()
+    bucket = Bucket.query.filter_by(id=bktid).first()
     if not bucket:
         return jsonify({'message' : 'No bucket found!'})
     bucket.bucketname = data['newname']
@@ -117,12 +121,12 @@ def edit_bucket(current_user, bktname):
     return jsonify({'message' : 'Bucket name has been updated!'})
 
 
-@app.route('/bucketlists/<bktname>/items/', methods=['POST'])
+@app.route('/bucketlists/<bid>/items/', methods=['POST'])
 @token_required
-def add_item(bktname):
+def add_item(current_user, bid):
     '''add a new item'''
     item = request.get_json()
-    new_item = Item(itemaname=item['itemname'], status='Not Done', bucket_id=bktname)
+    new_item = Item(itemname=item['itemname'], status='Not Done', bucket_id=bid)
     db.session.add(new_item)
     db.session.commit()
     return jsonify({'message' : "Item added!"})
@@ -130,18 +134,22 @@ def add_item(bktname):
 
 @app.route('/bucketlists/<bktid>/items/', methods=['GET'])
 @token_required
-def get_items(bktid):
+def get_items(current_user, bktid):
     '''return all items in a bucket list'''
     items = Item.query.filter_by(bucket_id=bktid).all()
     output = []
     for item in items:
-        output.append(item)
+        item_data = {}
+        item_data['Item Name'] = item.itemname
+        item_data['Item ID'] = item.id
+        item_data['Bucket ID'] = item.bucket_id
+        output.append(item_data)
     return jsonify({'Items' : output})
 
 
 @app.route('/bucketlists/<bktid>/items/<itmid>', methods=['GET'])
 @token_required
-def get_item(bktid, itmid):
+def get_item(create_user, bktid, itmid):
     '''return one item from a bucketlist'''
     item = Item.query.filter_by(id=itmid, bucket_id=bktid).first()
     if not item:
@@ -154,24 +162,24 @@ def get_item(bktid, itmid):
     return jsonify(item_data)
 
 
-@app.route('/bucketlists/<bktid>/items/<itmname>', methods = ['PUT'])
+@app.route('/bucketlists/<bktid>/items/<itmid>', methods = ['PUT'])
 @token_required
-def edit_item(bktid, itmname):
+def edit_item(current_user, bktid, itmid):
     '''edit an item'''
     data = request.get_json()
-    item = Item.query.filter_by(itemname=itmname, bucket_id=bktid).first()
+    item = Item.query.filter_by(id=itmid, bucket_id=bktid).first()
     if not item:
         return jsonify({'message' : 'No item found!'})
-    item.itemaname = data['newname']
+    item.itemname = data['newname']
     item.status = data['status']
     db.session.commit()
     return jsonify({'message' : 'Item has been updated!'})
 
-@app.route('/bucketlists/<bktid>/items/<itmname>', methods = ['DELETE'])
+@app.route('/bucketlists/<bktid>/items/<itmid>', methods = ['DELETE'])
 @token_required
-def delete_item(bktid, itmname):
+def delete_item(create_user, bktid, itmid):
     '''delete an item'''
-    item = Item.query.filter_by(itemaname=itmname, bucket_id=bktid).first()
+    item = Item.query.filter_by(id=itmid, bucket_id=bktid).first()
     if not item:
         return jsonify({'message' : 'No item found!'})
     db.session.delete(item)
