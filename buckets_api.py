@@ -18,8 +18,8 @@ def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
+        if 'token' in request.headers:
+            token = request.headers['token']
         if not token:
             return jsonify({'message' : 'Token is missing!'}), 401
         try: 
@@ -35,26 +35,29 @@ def token_required(f):
 def create_user():
     '''register a user'''
     data = request.get_json()
-    hashed_password = generate_password_hash(data['password'], method='sha256')
-    new_user = User(username=data['username'], password=hashed_password)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({'message' : 'New user created!'})
+    checkuser = User.query.filter_by(username = data['username']).first()
+    if not checkuser:
+        hashed_password = generate_password_hash(data['password'], method='sha256')
+        new_user = User(username=data['username'], password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({'message' : 'New user created!'})
+    return jsonify({'message' : 'User name in use'})
 
-@app.route('/auth/login')
+
+@app.route('/auth/login', methods=['POST'])
 def login():
     '''Login a user, and assign a token'''
-    auth = request.authorization
-    if not auth or not auth.username or not auth.password:
-        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
-    user = User.query.filter_by(username=auth.username).first()
+    data = request.get_json()
+    if not data:
+        return make_response('No Credentials', 401)
+    user = User.query.filter_by(username=data['username']).first()
     if not user:
-        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
-    if check_password_hash(user.password, auth.password):
+        return make_response('Username does not exist', 401)
+    if check_password_hash(user.password, data['password']):
         token = jwt.encode({'username' : user.username, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
-        return jsonify({'token' : token.decode('UTF-8')})
-    return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
-
+        return jsonify({'token' : token.decode('UTF-8'), 'status' : 200})
+    return make_response('Wrong Password', 401)
 
 @app.route('/bucketlists/<bktname>', methods=['POST'])
 @token_required
@@ -86,7 +89,7 @@ def get_buckets(current_user):
 @token_required
 def get_bucket(current_user, bktid):
     '''return one bucket of the logged in user'''
-    bucket = Bucket.query.filter_by(id=bktname).first()
+    bucket = Bucket.query.filter_by(id=bktid).first()
     if not bucket:
         return jsonify({'message' : 'No bucket found!'})
     bucket_data = {}
