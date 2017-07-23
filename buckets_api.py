@@ -85,11 +85,11 @@ def get_buckets(current_user):
     return jsonify({'Buckets' : output})
 
 
-@app.route('/bucketlists/<bktid>', methods=['GET'])
+@app.route('/bucketlists/<bktname>', methods=['GET'])
 @token_required
-def get_bucket(current_user, bktid):
+def get_bucket(current_user, bktname):
     '''return one bucket of the logged in user'''
-    bucket = Bucket.query.filter_by(id=bktid).first()
+    bucket = Bucket.query.filter_by(bucketname=bktname).first()
     if not bucket:
         return jsonify({'message' : 'No bucket found!'})
     bucket_data = {}
@@ -99,11 +99,11 @@ def get_bucket(current_user, bktid):
     return jsonify(bucket_data)
 
 
-@app.route('/bucketlists/<bktid>', methods=['DELETE'])
+@app.route('/bucketlists/<bktname>', methods=['DELETE'])
 @token_required
-def delete_bucket(current_user, bktid):
+def delete_bucket(current_user, bktname):
     '''delete a bucket list'''
-    bucket = Bucket.query.filter_by(id=bktid).first()
+    bucket = Bucket.query.filter_by(bucketname=bktname, user_id=current_user.id).first()
     if not bucket:
         return jsonify({'message' : 'No bucket found!'})
     db.session.delete(bucket)
@@ -111,12 +111,12 @@ def delete_bucket(current_user, bktid):
     return jsonify({'message' : 'Bucket list deleted!'})
 
 
-@app.route('/bucketlists/<bktid>', methods=['PUT'])
+@app.route('/bucketlists/<bktname>', methods=['PUT'])
 @token_required
-def edit_bucket(current_user, bktid):
+def edit_bucket(current_user, bktname):
     '''edit a bucket list'''
     data = request.get_json()
-    bucket = Bucket.query.filter_by(id=bktid).first()
+    bucket = Bucket.query.filter_by(bucketname=bktname, user_id=current_user.id).first()
     if not bucket:
         return jsonify({'message' : 'No bucket found!'})
     bucket.bucketname = data['newname']
