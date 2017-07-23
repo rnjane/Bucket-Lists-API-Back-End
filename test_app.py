@@ -14,6 +14,19 @@ class BucketListTest(unittest.TestCase):
         self.app = app.app.test_client()
 
 
+class BasicTests(BucketListTest):
+    '''Tests on flask setup'''
+    def test_index(self):
+        '''Ensure that Flask was set up correctly'''
+        response = self.app.get('/', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+
+    def test_main_route_requires_login(self):
+        '''Ensure that buckets page requires user login'''
+        response = self.app.get('/bucketlists', follow_redirects=True)
+        self.assertIn(b'Please log in to access this page', response.data)
+
+
 class UserTest(BucketListTest):
     '''Tests for user functionalities'''
     def test_register_succesful(self):
