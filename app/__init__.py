@@ -76,6 +76,9 @@ class BucketLists():
 
     def create_bucket(self, bucketname):
         '''add a bucket method'''
+        findbucket = Bucket.query.filter_by(bucketname=bucketname, user_id=current_user.id).first()
+        if findbucket:
+            return 'bucket name in use'
         new_bucket = Bucket(bucketname=bucketname, user=current_user)
         db.session.add(new_bucket)
         db.session.commit()
@@ -110,7 +113,11 @@ class Items():
     def create_item(self, itemname):
         '''create item method'''
         name = session['currentbucket']
-        current_bucket = Bucket.query.filter_by(bucketname=name).first()
+        bucketid = Bucket.query.filter_by(bucketname=name, user_id=current_user.id).first()
+        finditem = Item.query.filter_by(itemname=itemname, bucket_id=bucketid.id).first()
+        if finditem:
+            return 'item name in use'
+        current_bucket = Bucket.query.filter_by(bucketname=name, user_id=current_user.id).first()
         new_item = Item(itemname=itemname, bucket=current_bucket)
         db.session.add(new_item)
         db.session.commit()
@@ -222,6 +229,9 @@ def addbucket():
     if bucket.create_bucket(form.bucketname.data) == 'bucket added.':
         flash('Bucket added.')
         return redirect(url_for('bucketlists'))
+    elif bucket.create_bucket(form.bucketname.data) == 'bucket name in use':
+        flash('bucket name in use')
+        return redirect(url_for('bucketlists'))
     return redirect(url_for('bucketlists'))
 
 
@@ -265,6 +275,9 @@ def additem():
     '''Add item function'''
     if item.create_item(request.form['itemname']) == 'item added.':
         flash('Item added.')
+        return redirect(url_for('viewitems', b_key=session['currentbucket']))
+    elif item.create_item(request.form['itemname']) == 'item name in use':
+        flash('item name in use')
         return redirect(url_for('viewitems', b_key=session['currentbucket']))
     flash('Illegal item name.')
     return redirect(url_for('viewitems', b_key=session['currentbucket']))
