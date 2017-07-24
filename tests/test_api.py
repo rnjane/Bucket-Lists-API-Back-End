@@ -148,11 +148,15 @@ class ItemTest(BucketListApiTest):
         data = json.loads(token.data.decode())
         tkn = data['token']
 
-        self.app.post('/bucketlists/tt', headers=dict(
+        response1 = self.app.post('/bucketlists/bucketitem', headers=dict(
                         token=[tkn]))
-        response = self.app.post("/bucketlists/testbucket/items/", headers=dict(
+
+        response = self.app.post("/bucketlists/bucketitem/items/", headers=dict(
                                 token=[tkn]), data=json.dumps(dict(
                 itemname='testitem'
-            ))),
+            )),
+            content_type='application/json')
+
+        self.assertIn(b"Item added!", response.data)
 
         
