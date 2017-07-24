@@ -111,7 +111,10 @@ class BucketListTest(BucketListApiTest):
         data = json.loads(token.data.decode())
         tkn = data['token']
 
-        response = self.app.put('/bucketlists/testbucket', headers=dict(
+        self.app.post('/bucketlists/editbucket', headers=dict(
+                                token=[tkn]))
+
+        response = self.app.put('/bucketlists/editbucket', headers=dict(
                                 token=[tkn]), data=json.dumps(dict(
                 newname='newname'
             )),
