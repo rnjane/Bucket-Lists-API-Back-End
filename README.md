@@ -1,4 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/rnjane/BucketLists-API/badge.svg?branch=develop)](https://coveralls.io/github/rnjane/BucketLists-API?branch=develop)
+
 [![Build Status](https://travis-ci.org/rnjane/BucketLists-API.svg?branch=develop)](https://travis-ci.org/rnjane/BucketLists-API)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 # Introduction

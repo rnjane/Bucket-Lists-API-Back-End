@@ -191,7 +191,13 @@ class ItemTest(BucketListApiTest):
         data = json.loads(token.data.decode())
         tkn = data['token']
 
-        response = self.app.put('/bucketlists/bucketitem/items/testitem', headers=dict(
+        self.app.post("/bucketlists/bucketitem/items/", headers=dict(
+                                token=[tkn]), data=json.dumps(dict(
+                itemname='edtitem'
+            )),
+            content_type='application/json')
+
+        response = self.app.put('/bucketlists/bucketitem/items/edtitem', headers=dict(
                                 token=[tkn]), data=json.dumps(dict(
                 newname='neweditname',
                 status='Done'
@@ -209,7 +215,13 @@ class ItemTest(BucketListApiTest):
 
         data = json.loads(token.data.decode())
         tkn = data['token']
+        
+        self.app.post("/bucketlists/bucketitem/items/", headers=dict(
+                                token=[tkn]), data=json.dumps(dict(
+                itemname='delitem'
+            )),
+            content_type='application/json')
 
-        response = self.app.delete('/bucketlists/bucketitem/items/testitem', headers=dict(
+        response = self.app.delete('/bucketlists/bucketitem/items/delitem', headers=dict(
                                 token=[tkn]))
         self.assertIn(b'Item deleted!', response.data)
