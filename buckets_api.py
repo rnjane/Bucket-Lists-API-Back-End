@@ -124,12 +124,13 @@ def edit_bucket(current_user, bktname):
     return jsonify({'message' : 'Bucket name has been updated!'})
 
 
-@app.route('/bucketlists/<bid>/items/', methods=['POST'])
+@app.route('/bucketlists/<bktname>/items/', methods=['POST'])
 @token_required
-def add_item(current_user, bid):
+def add_item(current_user, bktname):
     '''add a new item'''
     item = request.get_json()
-    new_item = Item(itemname=item['itemname'], status='Not Done', bucket_id=bid)
+    bid = Bucket.query.filter_by(bucketname=bktname, user_id=current_user.id).first()
+    new_item = Item(itemname=item['itemname'], status='Not Done', bucket_id=bid.id)
     db.session.add(new_item)
     db.session.commit()
     return jsonify({'message' : "Item added!"})
