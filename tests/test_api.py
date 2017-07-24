@@ -132,3 +132,24 @@ class BucketListTest(BucketListApiTest):
         response = self.app.delete('/bucketlists/testbucket', headers=dict(
                                 token=[tkn]))        
         self.assertIn(b'Bucket list deleted!', response.data)
+
+
+class ItemTest(BucketListApiTest):
+    def test_itemadd_succes(self):
+        token = self.app.post('/auth/login', data=json.dumps(dict(
+                username='testuser1',
+                password='123456'
+            )),
+            content_type='application/json')
+
+        data = json.loads(token.data.decode())
+        tkn = data['token']
+
+        self.app.post('/bucketlists/tt', headers=dict(
+                        token=[tkn]))
+        response = self.app.post("/bucketlists/testbucket/items/", headers=dict(
+                                token=[tkn]), data=json.dumps(dict(
+                itemname='testitem'
+            ))),
+
+        
