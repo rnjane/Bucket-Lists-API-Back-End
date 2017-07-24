@@ -136,11 +136,12 @@ def add_item(current_user, bktname):
     return jsonify({'message' : "Item added!"})
 
 
-@app.route('/bucketlists/<bktid>/items/', methods=['GET'])
+@app.route('/bucketlists/<bktname>/items/', methods=['GET'])
 @token_required
-def get_items(current_user, bktid):
+def get_items(current_user, bktname):
     '''return all items in a bucket list'''
-    items = Item.query.filter_by(bucket_id=bktid).all()
+    bktid = Bucket.query.filter_by(bucketname=bktname, user_id=current_user.id).first()
+    items = Item.query.filter_by(bucket_id=bktid.id).all()
     output = []
     for item in items:
         item_data = {}
@@ -166,12 +167,13 @@ def get_item(create_user, bktid, itmid):
     return jsonify(item_data)
 
 
-@app.route('/bucketlists/<bktid>/items/<itmid>', methods = ['PUT'])
+@app.route('/bucketlists/<bktname>/items/<itmname>', methods = ['PUT'])
 @token_required
-def edit_item(current_user, bktid, itmid):
+def edit_item(current_user, bktname, itmname):
     '''edit an item'''
     data = request.get_json()
-    item = Item.query.filter_by(id=itmid, bucket_id=bktid).first()
+    bktid = Bucket.query.filter_by(bucketname=bktname, user_id=current_user.id).first()
+    item = Item.query.filter_by(itemname=itmname, bucket_id=bktid.id).first()
     if not item:
         return jsonify({'message' : 'No item found!'})
     item.itemname = data['newname']
@@ -179,11 +181,12 @@ def edit_item(current_user, bktid, itmid):
     db.session.commit()
     return jsonify({'message' : 'Item has been updated!'})
 
-@app.route('/bucketlists/<bktid>/items/<itmid>', methods = ['DELETE'])
+@app.route('/bucketlists/<bktname>/items/<itmname>', methods = ['DELETE'])
 @token_required
-def delete_item(create_user, bktid, itmid):
+def delete_item(current_user, bktname, itmname):
     '''delete an item'''
-    item = Item.query.filter_by(id=itmid, bucket_id=bktid).first()
+    bktid = Bucket.query.filter_by(bucketname=bktname, user_id=current_user.id).first()
+    item = Item.query.filter_by(itemname=itmname, bucket_id=bktid.id).first()
     if not item:
         return jsonify({'message' : 'No item found!'})
     db.session.delete(item)
