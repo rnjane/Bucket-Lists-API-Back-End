@@ -22,7 +22,7 @@ def token_required(f):
             token = request.headers['token']
         if not token:
             return jsonify({'message' : 'Token is missing!'}), 401
-        try: 
+        try:
             data = jwt.decode(token, app.config['SECRET_KEY'])
             current_user = User.query.filter_by(username=data['username']).first()
         except:
@@ -74,8 +74,22 @@ def create_bucket(current_user, bktname):
 @token_required
 def get_buckets(current_user):
     '''return all buckets of a logged in user'''
+    search = request.args.get('q')
+    if search:
+        bkt = Bucket.query.filter_by(user_id=current_user.id, bucketname=search).first()
+        if bkt:
+            bucket_info = {}
+            output = []
+            bucket_info['User ID'] = bkt.user_id
+            bucket_info['Bucket Name'] = bkt.bucketname
+            bucket_info['Bucket ID'] = bkt.id
+            output.append(bucket_info)
+            return jsonify({'Buckets' : output})
+        return jsonify({'message' : 'Bucket not found'})
     buckets = Bucket.query.filter_by(user_id=current_user.id).all()
+    
     output = []
+
     for bucket in buckets:
         bucket_info = {}
         bucket_info['User ID'] = bucket.user_id
