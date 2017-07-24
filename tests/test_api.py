@@ -26,6 +26,7 @@ class TokenTests(BucketListApiTest):
 class RegisterTest(BucketListApiTest):
     '''Tests for user functionalities'''
     def test_duplicateuser_fails(self):
+        '''test no duplicate username allowed'''
         self.app.post('/auth/register', data=json.dumps(dict(
                 username='testuser1',
                 password='123456'
@@ -39,6 +40,7 @@ class RegisterTest(BucketListApiTest):
         self.assertIn(b'User name in use', response.data)
 
     def test_register_succesful(self):
+        '''test register works'''
         response = self.app.post('/auth/register', data=json.dumps(dict(
                 username='testuser1',
                 password='123456'
@@ -49,6 +51,7 @@ class RegisterTest(BucketListApiTest):
 
 class LoginTest(BucketListApiTest):
     def test_loginwrongpassword_fails(self):
+        '''test wrong password login fails'''
         response = self.app.post('/auth/login', data=json.dumps(dict(
                 username='testuser1',
                 password='nono'
@@ -102,6 +105,7 @@ class BucketListTest(BucketListApiTest):
         self.assertIn(b"testbucket", testviewonebucket.data)
 
     def test_bucketedit_succes(self):
+        '''test bucket edit works'''
         token = self.app.post('/auth/login', data=json.dumps(dict(
                 username='testuser1',
                 password='123456'
@@ -123,6 +127,7 @@ class BucketListTest(BucketListApiTest):
         self.assertIn(b'Bucket name has been updated!', response.data)
 
     def test_bucketdelete_succes(self):
+        '''test deleting bucket works'''
         token = self.app.post('/auth/login', data=json.dumps(dict(
                 username='testuser1',
                 password='123456'
@@ -139,6 +144,7 @@ class BucketListTest(BucketListApiTest):
 
 class ItemTest(BucketListApiTest):
     def test_itemadd_succes(self):
+        '''test adding item works'''
         token = self.app.post('/auth/login', data=json.dumps(dict(
                 username='testuser1',
                 password='123456'
@@ -148,7 +154,7 @@ class ItemTest(BucketListApiTest):
         data = json.loads(token.data.decode())
         tkn = data['token']
 
-        response1 = self.app.post('/bucketlists/bucketitem', headers=dict(
+        self.app.post('/bucketlists/bucketitem', headers=dict(
                         token=[tkn]))
 
         response = self.app.post("/bucketlists/bucketitem/items/", headers=dict(
@@ -159,4 +165,51 @@ class ItemTest(BucketListApiTest):
 
         self.assertIn(b"Item added!", response.data)
 
-        
+    def test_itemview_succes(self):
+        '''test viewing items work'''
+        token = self.app.post('/auth/login', data=json.dumps(dict(
+                username='testuser1',
+                password='123456'
+            )),
+            content_type='application/json')
+
+        data = json.loads(token.data.decode())
+        tkn = data['token']
+
+        response = self.app.get("/bucketlists/bucketitem/items/", headers=dict(
+                                token=[tkn]))
+        self.assertIn(b"testitem", response.data)
+
+    def test_itemedit_succes(self):
+        '''test item edit works'''
+        token = self.app.post('/auth/login', data=json.dumps(dict(
+                username='testuser1',
+                password='123456'
+            )),
+            content_type='application/json')
+
+        data = json.loads(token.data.decode())
+        tkn = data['token']
+
+        response = self.app.put('/bucketlists/bucketitem/items/testitem', headers=dict(
+                                token=[tkn]), data=json.dumps(dict(
+                newname='neweditname',
+                status='Done'
+            )),
+            content_type='application/json')
+        self.assertIn(b'Item has been updated!', response.data)
+
+    def test_itemdelete_succes(self):
+        '''test item delete works'''
+        token = self.app.post('/auth/login', data=json.dumps(dict(
+                username='testuser1',
+                password='123456'
+            )),
+            content_type='application/json')
+
+        data = json.loads(token.data.decode())
+        tkn = data['token']
+
+        response = self.app.delete('/bucketlists/bucketitem/items/testitem', headers=dict(
+                                token=[tkn]))
+        self.assertIn(b'Item deleted!', response.data)
