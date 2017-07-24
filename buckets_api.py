@@ -74,6 +74,7 @@ def create_bucket(current_user, bktname):
 @token_required
 def get_buckets(current_user):
     '''return all buckets of a logged in user'''
+    #paginate_object = Model.query.paginate(page=1, per_page=1)
     search = request.args.get('q')
     if search:
         bkt = Bucket.query.filter_by(user_id=current_user.id, bucketname=search).first()
@@ -86,10 +87,9 @@ def get_buckets(current_user):
             output.append(bucket_info)
             return jsonify({'Buckets' : output})
         return jsonify({'message' : 'Bucket not found'})
-    buckets = Bucket.query.filter_by(user_id=current_user.id).all()
-    
+    limit = request.args.get('limit')
+    buckets = Bucket.query.filter_by(user_id=current_user.id).paginate(1, limit, False).all()
     output = []
-
     for bucket in buckets:
         bucket_info = {}
         bucket_info['User ID'] = bucket.user_id
@@ -155,7 +155,21 @@ def add_item(current_user, bktname):
 def get_items(current_user, bktname):
     '''return all items in a bucket list'''
     bktid = Bucket.query.filter_by(bucketname=bktname, user_id=current_user.id).first()
-    items = Item.query.filter_by(bucket_id=bktid.id).all()
+    search = request.args.get('q')
+    limit = request.args.get('limit')
+    if search:
+        bkt = Item.query.filter_by(bucket_id=bktid.id, itemname=search).first()
+        output = []
+        if bkt:
+            item_data = {}
+            output = []
+            item_data['Item ID'] = bkt.user_id
+            item_data['Item Name'] = bkt.bucketname
+            item_data['Item ID'] = bkt.id
+            output.append(item_data)
+            return jsonify({'Items' : output})
+        return jsonify({'message' : 'Item not found'})
+    items = Item.query.filter_by(bucket_id=bktid.id).paginate(1, limit, False).all()
     output = []
     for item in items:
         item_data = {}
