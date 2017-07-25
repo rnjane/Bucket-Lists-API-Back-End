@@ -88,7 +88,17 @@ def get_buckets(current_user):
             return jsonify({'Buckets' : output})
         return jsonify({'message' : 'Bucket not found'})
     limit = request.args.get('limit')
-    buckets = Bucket.query.filter_by(user_id=current_user.id).paginate(1, limit, False).all()
+    if limit:
+        buckets = Bucket.query.filter_by(user_id=current_user.id).limit(int(limit))
+        output = []
+        for bucket in buckets:
+            bucket_info = {}
+            bucket_info['User ID'] = bucket.user_id
+            bucket_info['Bucket Name'] = bucket.bucketname
+            bucket_info['Bucket ID'] = bucket.id
+            output.append(bucket_info)
+        return jsonify({'Buckets' : output})
+    buckets = Bucket.query.filter_by(user_id=current_user.id).all()
     output = []
     for bucket in buckets:
         bucket_info = {}
@@ -169,6 +179,17 @@ def get_items(current_user, bktname):
             output.append(item_data)
             return jsonify({'Items' : output})
         return jsonify({'message' : 'Item not found'})
+    limit = request.args.get('limit')
+    if limit:
+        items = Item.query.filter_by(bucket_id=bktid.id, itemname=search).limit(int(limit))
+        output = []
+        for item in items:
+            item_data = {}
+            item_data['User ID'] = item.bucket_id
+            item_data['Bucket Name'] = item.itemname
+            item_data['Bucket ID'] = item.id
+            output.append(item_data)
+        return jsonify({'Items' : output})
     items = Item.query.filter_by(bucket_id=bktid.id).paginate(1, limit, False).all()
     output = []
     for item in items:
