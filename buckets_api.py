@@ -190,7 +190,7 @@ def get_items(current_user, bktname):
             item_data['Bucket ID'] = item.id
             output.append(item_data)
         return jsonify({'Items' : output})
-    items = Item.query.filter_by(bucket_id=bktid.id).paginate(1, limit, False).all()
+    items = Item.query.filter_by(bucket_id=bktid.id).all()
     output = []
     for item in items:
         item_data = {}
