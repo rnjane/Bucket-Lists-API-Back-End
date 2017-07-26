@@ -1,23 +1,11 @@
-from flask import Flask
+from flask import Flask, request, jsonify, make_response
+
 from flask_sqlalchemy import SQLAlchemy
+from app import config
 
 
 app = Flask(__name__)
-jj = app
+app.config.from_object(config)
 db = SQLAlchemy(app)
-#app.config.from_object('config')
 
-SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:root@localhost/bucketlists'
-SECRET_KEY = "mysecretalone"
-#SQLALCHEMY_DATABASE_URI = 'postgresql://rysxbcmtfrizgg:f83aa7c7c22300b62cd5cf475948efd146a33136c06b8029d44645a688e7d57c@ec2-184-73-236-170.compute-1.amazonaws.com/db7ai5ug00k7do'
-CSRF_ENABLED = True
-USER_ENABLE_EMAIL = False
-SQLALCHEMY_TRACK_MODIFICATIONS = True
-
-import app.views.auth
-import app.views.bucketlists
-import app.views.items
-
-
-
-
+from app import views
