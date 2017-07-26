@@ -3,32 +3,13 @@ from app import jj, db
 from app import models
 from flask import Flask, request, jsonify, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
-import jwt
-import datetime
-from functools import wraps
 
+from ..decorator import token_required
 
 app = jj
 
 Bucket = models.Bucket()
 User = models.User
-
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        if 'token' in request.headers:
-            token = request.headers['token']
-        if not token:
-            return jsonify({'message' : 'Token is missing!'}), 401
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'])
-            current_user = User.query.filter_by(username=data['username']).first()
-        except:
-            return jsonify({'message' : 'Token is invalid!'}), 401
-        return f(current_user, *args, **kwargs)
-
-    return decorated
 
 @app.route('/bucketlists/<bktname>', methods=['POST'])
 @token_required

@@ -5,9 +5,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
 from functools import wraps
-# from views import auth
-# from auth import token_required
 
+from ..decorator import token_required
 app = jj
 
 Bucket = models.Bucket()
