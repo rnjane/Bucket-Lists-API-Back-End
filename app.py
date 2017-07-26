@@ -1,5 +1,5 @@
-from app import db, app
+from app import db, jj
 
 if __name__ == '__main__':
     db.create_all()
-    app.run(debug=True)
+    jj.run(debug=True)
