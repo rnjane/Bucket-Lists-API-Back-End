@@ -4,7 +4,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 # Introduction
 
-* **Bucket Lists Api** provides endpoints that provide acces to a bucket lists application. The api is hosted at https://robert-bucket-lists-api.herokuapp.com/
+* **Bucket Lists Api** provides endpoints that provide acces to a bucket lists application.
 
 # Features
   * User should be able to signup and login
