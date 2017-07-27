@@ -1,11 +1,12 @@
 import os
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
+from app import config
 
 from app import app, db
 
 
-app.config.from_object('config')
+app.config.from_object(config)
 
 migrate = Migrate(app, db)
 manager = Manager(app)
