@@ -4,8 +4,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 # Introduction
 
-* **Bucket Lists App** is a Flask Powered Bucket Lists App. Bucket List app helps users record things they want to achieve or experience before reaching a certain age.
-* Click [here](https://my-bucket-lists.herokuapp.com/) to see a working version.
+* **Bucket Lists Api** provides endpoints that provide acces to a bucket lists application. The api is hosted at https://robert-bucket-lists-api.herokuapp.com/
 
 # Features
   * User should be able to signup and login
@@ -17,4 +16,3 @@
 # Technologies used
   * Python - Flask
   * Postgre sql
-  * Bootstrap
