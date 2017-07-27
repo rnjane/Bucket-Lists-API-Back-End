@@ -64,17 +64,20 @@ def login():
     return make_response('Wrong Password', 401)
 
 
-@app.route('/bucketlists/', methods=['POST'])
+@app.route('/bucketlists', methods=['POST'])
 @token_required
 def create_bucket(current_user):
     '''create a new bucket'''
     data = request.get_json()
+    bucket = Bucket.query.filter_by(bucketname=data['bucketname'], user_id=current_user.id).first()
+    if bucket:
+        return jsonify({'message': 'Bucket name in use'})
     new_bucket = Bucket(bucketname=data['bucketname'], user_id=current_user.id)
     db.session.add(new_bucket)
     db.session.commit()
     bucket_data = {}
-    bucket_data['Bucket ID'] = new_bucket.id
-    return jsonify(bucket_data)
+    bucket_data['bid'] = new_bucket.id
+    return jsonify(bucket_data), 200
 
 
 @app.route('/bucketlists/', methods=['GET'])
@@ -129,7 +132,7 @@ def get_bucket(current_user, bktid):
     bucket_data['User Id'] = bucket.user_id
     bucket_data['Bucket Name'] = bucket.bucketname
     bucket_data['Bucket ID'] = bucket.id
-    return jsonify(bucket_data)
+    return jsonify(bucket_data), 200
 
 
 @app.route('/bucketlists/<bktid>', methods=['DELETE'])
@@ -138,10 +141,10 @@ def delete_bucket(current_user, bktid):
     '''delete a bucket list'''
     bucket = Bucket.query.filter_by(id=bktid, user_id=current_user.id).first()
     if not bucket:
-        return jsonify({'message': 'No bucket found!'})
+        return jsonify({'message': 'No bucket found!'}), 200
     db.session.delete(bucket)
     db.session.commit()
-    return jsonify({'message': 'Bucket list deleted!'})
+    return jsonify({'message': 'Bucket list deleted!'}), 200
 
 
 @app.route('/bucketlists/<bktid>', methods=['PUT'])
@@ -154,22 +157,25 @@ def edit_bucket(current_user, bktid):
         return jsonify({'message': 'No bucket found!'})
     bucket.bucketname = data['newname']
     db.session.commit()
-    return jsonify({'message': 'Bucket name has been updated!'})
+    return jsonify({'message': 'Bucket name has been updated!'}), 200
 
 
-@app.route('/bucketlists/<bktid>/items/', methods=['POST'])
+@app.route('/bucketlists/<bktid>/items', methods=['POST'])
 @token_required
 def add_item(current_user, bktid):
     '''add a new item'''
     item = request.get_json()
+    itm = Item.query.filter_by(itemname=item['itemname'], bucket_id=bktid).first()
+    if itm:
+        return jsonify({'message': 'Item name in use'}), 200
     new_item = Item(itemname=item['itemname'],
                     status='Not Done', bucket_id=bktid)
     db.session.add(new_item)
     db.session.commit()
-    return jsonify({'message': "Item added!"})
+    return jsonify({'message': "Item added!"}), 200
 
 
-@app.route('/bucketlists/<bktid>/items/', methods=['GET'])
+@app.route('/bucketlists/<bktid>/items', methods=['GET'])
 @token_required
 def get_items(current_user, bktid):
     '''return all items in a bucket list'''
@@ -231,11 +237,11 @@ def edit_item(current_user, bktid, itmid):
     data = request.get_json()
     item = Item.query.filter_by(id=itmid, bucket_id=bktid).first()
     if not item:
-        return jsonify({'message': 'No item found!'})
+        return jsonify({'message': 'No item found!'}), 200
     item.itemname = data['newname']
     item.status = data['status']
     db.session.commit()
-    return jsonify({'message': 'Item has been updated!'})
+    return jsonify({'message': 'Item has been updated!'}), 200
 
 
 @app.route('/bucketlists/<bktid>/items/<itmid>', methods=['DELETE'])
@@ -244,10 +250,10 @@ def delete_item(current_user, bktid, itmid):
     '''delete an item'''
     item = Item.query.filter_by(id=itmid, bucket_id=bktid).first()
     if not item:
-        return jsonify({'message': 'No item found!'})
+        return jsonify({'message': 'No item found!'}), 200
     db.session.delete(item)
     db.session.commit()
-    return jsonify({'message': 'Item deleted!'})
+    return jsonify({'message': 'Item deleted!'}), 200
 
 
 @app.route('/getbktid/<bktname>')
