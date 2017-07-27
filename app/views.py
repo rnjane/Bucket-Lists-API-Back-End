@@ -11,7 +11,7 @@ from app.models import User, Bucket, Item
 @app.route('/')
 def index():
     '''Home page'''
-    return render_template('documentation.html')
+    return 'Welcome to bucket lists api. Visit an endpoint to explore'
 
 
 def token_required(f):
@@ -72,7 +72,9 @@ def create_bucket(current_user):
     new_bucket = Bucket(bucketname=data['bucketname'], user_id=current_user.id)
     db.session.add(new_bucket)
     db.session.commit()
-    return jsonify({'message': "Bucket created!"})
+    bucket_data = {}
+    bucket_data['Bucket ID'] = new_bucket.id
+    return jsonify(bucket_data)
 
 
 @app.route('/bucketlists/', methods=['GET'])
@@ -246,3 +248,16 @@ def delete_item(current_user, bktid, itmid):
     db.session.delete(item)
     db.session.commit()
     return jsonify({'message': 'Item deleted!'})
+
+
+@app.route('/getbktid/<bktname>')
+@token_required
+def getbktid(bktname):
+    bucket = Bucket.query.filter_by(
+        bucketname=bktname, user_id=current_user.id).first()
+    item_data = {}
+    item_data['Bucket Id'] = item.bucket_id
+    item_data['itmid'] = item.id
+    item_data['Item Name'] = item.itemname
+    item_data['Item Status'] = item.status
+    return jsonify(item_data)
