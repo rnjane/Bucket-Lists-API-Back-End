@@ -76,7 +76,9 @@ def create_bucket(current_user):
     db.session.add(new_bucket)
     db.session.commit()
     bucket_data = {}
-    bucket_data['bid'] = new_bucket.id
+    bucket_data['Bucket ID'] = new_bucket.id
+    bucket_data['Bucket Name'] = new_bucket.bucketname
+    bucket_data['User Name'] = current_user.username
     return jsonify(bucket_data), 200
 
 
