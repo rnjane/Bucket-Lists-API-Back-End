@@ -37,31 +37,36 @@ def token_required(f):
 def create_user():
     '''register a user'''
     data = request.get_json()
-    checkuser = User.query.filter_by(username=data['username']).first()
-    if not checkuser:
-        hashed_password = generate_password_hash(
-            data['password'], method='sha256')
-        new_user = User(username=data['username'], password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        return jsonify({'message': 'New user created!'})
-    return jsonify({'message': 'User name in use'})
+    if 'username' and 'password' in data:
+        checkuser = User.query.filter_by(username=data['username']).first()
+        if not checkuser:
+            hashed_password = generate_password_hash(
+                data['password'], method='sha256')
+            new_user = User(
+                username=data['username'], password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            return jsonify({'message': 'New user created!'}), 200
+        return jsonify({'message': 'User name in use'}), 301
+    return jsonify({'message': 'Username and password needed'}), 404
 
 
 @app.route('/auth/login', methods=['POST'])
 def login():
     '''Login a user, and assign a token'''
     data = request.get_json()
-    if not data:
-        return make_response('No Credentials', 401)
-    user = User.query.filter_by(username=data['username']).first()
-    if not user:
-        return make_response('Username does not exist', 401)
-    if check_password_hash(user.password, data['password']):
-        token = jwt.encode({'username': user.username, 'exp': datetime.datetime.utcnow(
-        ) + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
-        return jsonify({'token': token.decode('UTF-8'), 'status': 200})
-    return make_response('Wrong Password', 401)
+    if 'username' and 'password' in data:
+        if not data:
+            return make_response('No Credentials', 401)
+        user = User.query.filter_by(username=data['username']).first()
+        if not user:
+            return make_response('Username does not exist', 401)
+        if check_password_hash(user.password, data['password']):
+            token = jwt.encode({'username': user.username, 'exp': datetime.datetime.utcnow(
+            ) + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+            return jsonify({'token': token.decode('UTF-8'), 'status': 200})
+        return make_response('Wrong Password', 401)
+    return jsonify({'message': 'Username and password needed'}), 404
 
 
 @app.route('/bucketlists', methods=['POST'])
@@ -69,15 +74,19 @@ def login():
 def create_bucket(current_user):
     '''create a new bucket'''
     data = request.get_json()
-    bucket = Bucket.query.filter_by(bucketname=data['bucketname'], user_id=current_user.id).first()
-    if bucket:
-        return jsonify({'message': 'Bucket name in use'})
-    new_bucket = Bucket(bucketname=data['bucketname'], user_id=current_user.id)
-    db.session.add(new_bucket)
-    db.session.commit()
-    bucket_data = {}
-    bucket_data['bid'] = new_bucket.id
-    return jsonify(bucket_data), 200
+    if 'bucketname' in data:
+        bucket = Bucket.query.filter_by(
+            bucketname=data['bucketname'], user_id=current_user.id).first()
+        if bucket:
+            return jsonify({'message': 'Bucket name in use'})
+        new_bucket = Bucket(
+            bucketname=data['bucketname'], user_id=current_user.id)
+        db.session.add(new_bucket)
+        db.session.commit()
+        bucket_data = {}
+        bucket_data['bid'] = new_bucket.id
+        return jsonify({'message': 'Bucket created!'}), 200
+    return jsonify({'message': 'Bucket name needed'}), 404
 
 
 @app.route('/bucketlists/', methods=['GET'])
@@ -109,7 +118,7 @@ def get_buckets(current_user):
             bucket_info['Bucket Name'] = bucket.bucketname
             bucket_info['Bucket ID'] = bucket.id
             output.append(bucket_info)
-        return jsonify({'Buckets': output})
+        return jsonify({'Buckets': output}), 200
     buckets = Bucket.query.filter_by(user_id=current_user.id).all()
     output = []
     for bucket in buckets:
@@ -118,7 +127,7 @@ def get_buckets(current_user):
         bucket_info['Bucket Name'] = bucket.bucketname
         bucket_info['Bucket ID'] = bucket.id
         output.append(bucket_info)
-    return jsonify({'Buckets': output})
+    return jsonify({'Buckets': output}), 200
 
 
 @app.route('/bucketlists/<bktid>', methods=['GET'])
@@ -141,7 +150,7 @@ def delete_bucket(current_user, bktid):
     '''delete a bucket list'''
     bucket = Bucket.query.filter_by(id=bktid, user_id=current_user.id).first()
     if not bucket:
-        return jsonify({'message': 'No bucket found!'}), 200
+        return jsonify({'message': 'No bucket found!'}), 404
     db.session.delete(bucket)
     db.session.commit()
     return jsonify({'message': 'Bucket list deleted!'}), 200
@@ -154,7 +163,7 @@ def edit_bucket(current_user, bktid):
     data = request.get_json()
     bucket = Bucket.query.filter_by(id=bktid, user_id=current_user.id).first()
     if not bucket:
-        return jsonify({'message': 'No bucket found!'})
+        return jsonify({'message': 'No bucket found!'}), 404
     bucket.bucketname = data['newname']
     db.session.commit()
     return jsonify({'message': 'Bucket name has been updated!'}), 200
@@ -165,9 +174,10 @@ def edit_bucket(current_user, bktid):
 def add_item(current_user, bktid):
     '''add a new item'''
     item = request.get_json()
-    itm = Item.query.filter_by(itemname=item['itemname'], bucket_id=bktid).first()
+    itm = Item.query.filter_by(
+        itemname=item['itemname'], bucket_id=bktid).first()
     if itm:
-        return jsonify({'message': 'Item name in use'}), 200
+        return jsonify({'message': 'Item name in use'}), 301
     new_item = Item(itemname=item['itemname'],
                     status='Not Done', bucket_id=bktid)
     db.session.add(new_item)
@@ -192,7 +202,7 @@ def get_items(current_user, bktid):
             item_data['Item Sttatus'] = item.status
             output.append(item_data)
             return jsonify({'Items': output})
-        return jsonify({'message': 'Item not found'})
+        return jsonify({'message': 'Item not found'}), 404
     limit = request.args.get('limit')
     if limit:
         items = Item.query.filter_by(bucket_id=bktid).limit(int(limit))
@@ -203,7 +213,7 @@ def get_items(current_user, bktid):
             item_data['Item Name'] = item.itemname
             item_data['Item Status'] = item.status
             output.append(item_data)
-        return jsonify({'Items': output})
+        return jsonify({'Items': output}), 200
     items = Item.query.filter_by(bucket_id=bktid).all()
     output = []
     for item in items:
@@ -212,7 +222,7 @@ def get_items(current_user, bktid):
         item_data['Item ID'] = item.id
         item_data['Bucket ID'] = item.bucket_id
         output.append(item_data)
-    return jsonify({'Items': output})
+    return jsonify({'Items': output}), 200
 
 
 @app.route('/bucketlists/<bktid>/items/<itmid>', methods=['GET'])
@@ -227,7 +237,7 @@ def get_item(create_user, bktid, itmid):
     item_data['Item Id'] = item.id
     item_data['Item Name'] = item.itemname
     item_data['Item Status'] = item.status
-    return jsonify(item_data)
+    return jsonify(item_data), 200
 
 
 @app.route('/bucketlists/<bktid>/items/<itmid>', methods=['PUT'])
@@ -237,7 +247,7 @@ def edit_item(current_user, bktid, itmid):
     data = request.get_json()
     item = Item.query.filter_by(id=itmid, bucket_id=bktid).first()
     if not item:
-        return jsonify({'message': 'No item found!'}), 200
+        return jsonify({'message': 'No item found!'}), 404
     item.itemname = data['newname']
     item.status = data['status']
     db.session.commit()
@@ -250,20 +260,8 @@ def delete_item(current_user, bktid, itmid):
     '''delete an item'''
     item = Item.query.filter_by(id=itmid, bucket_id=bktid).first()
     if not item:
-        return jsonify({'message': 'No item found!'}), 200
+        return jsonify({'message': 'No item found!'}), 404
     db.session.delete(item)
     db.session.commit()
     return jsonify({'message': 'Item deleted!'}), 200
 
-
-@app.route('/getbktid/<bktname>')
-@token_required
-def getbktid(bktname):
-    bucket = Bucket.query.filter_by(
-        bucketname=bktname, user_id=current_user.id).first()
-    item_data = {}
-    item_data['Bucket Id'] = item.bucket_id
-    item_data['itmid'] = item.id
-    item_data['Item Name'] = item.itemname
-    item_data['Item Status'] = item.status
-    return jsonify(item_data)
