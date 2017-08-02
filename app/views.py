@@ -11,7 +11,7 @@ from app.models import User, Bucket, Item
 @app.route('/')
 def index():
     '''Home page'''
-    return 'Welcome to bucket lists api. Visit an endpoint to explore'
+    return render_template('documentation.html')
 
 
 def token_required(f):
@@ -55,18 +55,16 @@ def create_user():
 def login():
     '''Login a user, and assign a token'''
     data = request.get_json()
-    if 'username' and 'password' in data:
-        if not data:
-            return make_response('No Credentials', 401)
-        user = User.query.filter_by(username=data['username']).first()
-        if not user:
-            return make_response('Username does not exist', 401)
-        if check_password_hash(user.password, data['password']):
-            token = jwt.encode({'username': user.username, 'exp': datetime.datetime.utcnow(
-            ) + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
-            return jsonify({'token': token.decode('UTF-8'), 'status': 200})
-        return make_response('Wrong Password', 401)
-    return jsonify({'message': 'Username and password needed'}), 404
+    if not data:
+        return make_response('No Credentials', 401)
+    user = User.query.filter_by(username=data['username']).first()
+    if not user:
+        return make_response('Username does not exist', 401)
+    if check_password_hash(user.password, data['password']):
+        token = jwt.encode({'username': user.username, 'exp': datetime.datetime.utcnow(
+        ) + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+        return jsonify({'token': token.decode('UTF-8'), 'status': 200})
+    return make_response('Wrong Password', 401)
 
 
 @app.route('/bucketlists', methods=['POST'])
@@ -106,7 +104,7 @@ def get_buckets(current_user):
             bucket_info['Bucket ID'] = bkt.id
             output.append(bucket_info)
             return jsonify({'Buckets': output})
-        return jsonify({'message': 'Bucket not found'})
+        return jsonify({'message': 'Bucket not found'}), 404
     limit = request.args.get('limit')
     if limit:
         buckets = Bucket.query.filter_by(
