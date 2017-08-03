@@ -58,9 +58,9 @@ class BucketListTest(BucketListApiTest):
     def test_bucketedit_succes(self):
         '''test bucket edit works'''
         token = self.app.post('/auth/login', data=json.dumps(dict(
-                username='testuser',
-                password='testpass'
-            )),
+            username='testuser',
+            password='testpass'
+        )),
             content_type='application/json')
 
         data = json.loads(token.data.decode())
@@ -68,23 +68,23 @@ class BucketListTest(BucketListApiTest):
 
         response = self.app.put('/bucketlists/1', headers=dict(
                                 token=[tkn]), data=json.dumps(dict(
-                newname='dojo'
-            )),
-            content_type='application/json')
+                                    newname='dojo'
+                                )),
+                                content_type='application/json')
 
         self.assertIn(b'Bucket name has been updated!', response.data)
 
     def test_bucketdelete_succes(self):
         '''test deleting bucket works'''
         token = self.app.post('/auth/login', data=json.dumps(dict(
-                username='testuser',
-                password='testpass'
-            )),
+            username='testuser',
+            password='testpass'
+        )),
             content_type='application/json')
 
         data = json.loads(token.data.decode())
         tkn = data['token']
 
         response = self.app.delete('/bucketlists/1', headers=dict(
-                                token=[tkn]))
+            token=[tkn]))
         self.assertIn(b'Bucket list deleted!', response.data)
