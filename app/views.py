@@ -36,34 +36,34 @@ def token_required(f):
 @app.route('/auth/register', methods=['POST'])
 def create_user():
     '''register a user'''
+    request.get_json(force=True)
     data = request.get_json()
-    if 'username' and 'password' in data:
-        checkuser = User.query.filter_by(username=data['username']).first()
-        if not checkuser:
-            hashed_password = generate_password_hash(
-                data['password'], method='sha256')
-            new_user = User(
-                username=data['username'], password=hashed_password)
-            db.session.add(new_user)
-            db.session.commit()
-            return jsonify({'message': 'New user created!'}), 200
-        return jsonify({'message': 'User name in use'}), 301
-    return jsonify({'message': 'Username and password needed'}), 404
-
+    checkuser = User.query.filter_by(username=data['username']).first()
+    if not checkuser:
+        hashed_password = generate_password_hash(
+            data['password'], method='sha256')
+        new_user = User(
+            username=data['username'], password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        return make_response('New user created!', 200)
+    return make_response('User name in use', 201)
+    # return jsonify({'message': 'Bucket not found'}), 201
 
 @app.route('/auth/login', methods=['POST'])
 def login():
     '''Login a user, and assign a token'''
+    request.get_json(force=True)
     data = request.get_json()
     if not data:
-        return make_response('No Credentials', 401)
+        return make_response('No Credentials', 404)
     user = User.query.filter_by(username=data['username']).first()
     if not user:
-        return make_response('Username does not exist', 401)
+        return make_response('Username does not exist', 404)
     if check_password_hash(user.password, data['password']):
         token = jwt.encode({'username': user.username, 'exp': datetime.datetime.utcnow(
         ) + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
-        return jsonify({'token': token.decode('UTF-8'), 'status': 200})
+        return jsonify({'token': token.decode('UTF-8'), 'username' : user.username}), 200
     return make_response('Wrong Password', 401)
 
 
@@ -76,15 +76,15 @@ def create_bucket(current_user):
         bucket = Bucket.query.filter_by(
             bucketname=data['bucketname'], user_id=current_user.id).first()
         if bucket:
-            return jsonify({'message': 'Bucket name in use'})
+            return make_response({'message': 'Bucket name in use'})
         new_bucket = Bucket(
             bucketname=data['bucketname'], user_id=current_user.id)
         db.session.add(new_bucket)
         db.session.commit()
         bucket_data = {}
         bucket_data['bid'] = new_bucket.id
-        return jsonify({'message': 'Bucket created!'}), 200
-    return jsonify({'message': 'Bucket name needed'}), 404
+        return make_response('Bucket created!', 200)
+    return make_response('Bucket name needed', 404)
 
 
 @app.route('/bucketlists/', methods=['GET'])
@@ -99,9 +99,9 @@ def get_buckets(current_user):
         if bkt:
             bucket_info = {}
             output = []
-            bucket_info['User ID'] = bkt.user_id
-            bucket_info['Bucket Name'] = bkt.bucketname
-            bucket_info['Bucket ID'] = bkt.id
+            bucket_info['userid'] = bkt.user_id
+            bucket_info['bucketname'] = bkt.bucketname
+            bucket_info['bucketid'] = bkt.id
             output.append(bucket_info)
             return jsonify({'Buckets': output})
         return jsonify({'message': 'Bucket not found'}), 404
@@ -112,18 +112,18 @@ def get_buckets(current_user):
         output = []
         for bucket in buckets:
             bucket_info = {}
-            bucket_info['User ID'] = bucket.user_id
-            bucket_info['Bucket Name'] = bucket.bucketname
-            bucket_info['Bucket ID'] = bucket.id
+            bucket_info['userid'] = bucket.user_id
+            bucket_info['bucketname'] = bucket.bucketname
+            bucket_info['bucketid'] = bucket.id
             output.append(bucket_info)
         return jsonify({'Buckets': output}), 200
     buckets = Bucket.query.filter_by(user_id=current_user.id).all()
     output = []
     for bucket in buckets:
         bucket_info = {}
-        bucket_info['User ID'] = bucket.user_id
-        bucket_info['Bucket Name'] = bucket.bucketname
-        bucket_info['Bucket ID'] = bucket.id
+        bucket_info['userid'] = bucket.user_id
+        bucket_info['bucketname'] = bucket.bucketname
+        bucket_info['bucketid'] = bucket.id
         output.append(bucket_info)
     return jsonify({'Buckets': output}), 200
 
