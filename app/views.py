@@ -21,7 +21,7 @@ def token_required(f):
         if 'token' in request.headers:
             token = request.headers['token']
         if not token:
-            return jsonify({'message': 'Token is missing!'}), 401
+            return jsonify({'message': 'Token is missing!'}), 404
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'])
             current_user = User.query.filter_by(
@@ -48,7 +48,7 @@ def create_user():
         db.session.commit()
         return make_response('New user created!', 200)
     return make_response('User name in use', 201)
-    # return jsonify({'message': 'Bucket not found'}), 201
+
 
 @app.route('/auth/login', methods=['POST'])
 def login():
@@ -73,17 +73,20 @@ def create_bucket(current_user):
     '''create a new bucket'''
     data = request.get_json()
     if 'bucketname' in data:
-        bucket = Bucket.query.filter_by(
-            bucketname=data['bucketname'], user_id=current_user.id).first()
-        if bucket:
-            return make_response({'message': 'Bucket name in use'})
-        new_bucket = Bucket(
-            bucketname=data['bucketname'], user_id=current_user.id)
-        db.session.add(new_bucket)
-        db.session.commit()
-        bucket_data = {}
-        bucket_data['bid'] = new_bucket.id
-        return make_response('Bucket created!', 200)
+        checkbucket = Bucket.query.filter_by(bucketname=data['bucketname']).first()
+        if not checkbucket:
+            bucket = Bucket.query.filter_by(
+                bucketname=data['bucketname'], user_id=current_user.id).first()
+            if bucket:
+                return make_response({'message': 'Bucket name in use'})
+            new_bucket = Bucket(
+                bucketname=data['bucketname'], user_id=current_user.id)
+            db.session.add(new_bucket)
+            db.session.commit()
+            bucket_data = {}
+            bucket_data['bid'] = new_bucket.id
+            return make_response('Bucket created!', 200)
+        return make_response('Bucket name in use', 201)
     return make_response('Bucket name needed', 404)
 
 
@@ -103,7 +106,7 @@ def get_buckets(current_user):
             bucket_info['bucketname'] = bkt.bucketname
             bucket_info['bucketid'] = bkt.id
             output.append(bucket_info)
-            return jsonify({'Buckets': output})
+            return jsonify({'Bucket': output}), 200
         return jsonify({'message': 'Bucket not found'}), 404
     limit = request.args.get('limit')
     if limit:
