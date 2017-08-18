@@ -55,8 +55,8 @@ def login():
     '''Login a user, and assign a token'''
     request.get_json(force=True)
     data = request.get_json()
-    if not data:
-        return make_response('No Credentials', 404)
+    #if not data:
+     #   return make_response('No Credentials', 404)
     user = User.query.filter_by(username=data['username']).first()
     if not user:
         return make_response('Username does not exist', 404)
