@@ -89,7 +89,7 @@ def create_bucket(current_user):
             bucket_data['user_id'] = new_bucket.user_id
             return jsonify({'Bucket' : bucket_data}), 201
         return jsonify({'message' : 'Bucket name in use'}), 401
-    return jsonify({'message': 'You need a bucket name'}), 400
+    return jsonify({'message': 'Please enter a bucket name'}), 400
 
 
 @app.route('/bucketlists/', methods=['GET'])
@@ -140,9 +140,9 @@ def get_bucket(current_user, bucket_id):
     if not bucket:
         return jsonify({'message': 'No bucket with this id for you'}), 404
     bucket_data = {}
-    bucket_data['User Id'] = bucket.user_id
-    bucket_data['Bucket Name'] = bucket.bucketname
-    bucket_data['Bucket ID'] = bucket.id
+    bucket_data['user_id'] = bucket.user_id
+    bucket_data['bucket_name'] = bucket.bucketname
+    bucket_data['bucket_id'] = bucket.id
     return jsonify(bucket_data), 200
 
 
@@ -184,7 +184,7 @@ def add_item(current_user, bucket_id):
                     status='Not Done', bucket_id=bucket_id)
     db.session.add(new_item)
     db.session.commit()
-    return jsonify({'message': "Item added!"}), 200
+    return jsonify({'message': "Item has been added to bucketlist"}), 200
 
 
 @app.route('/bucketlists/<bucket_id>/items', methods=['GET'])
@@ -223,6 +223,7 @@ def get_items(current_user, bucket_id):
         item_data['item_name'] = item.itemname
         item_data['item_id'] = item.id
         item_data['bucket_id'] = item.bucket_id
+        item_data['item_status'] = item.status
         output.append(item_data)
     return jsonify({'items': output}), 200
 
@@ -266,3 +267,4 @@ def delete_item(current_user, bucket_id, item_id):
     db.session.delete(item)
     db.session.commit()
     return jsonify({'message': 'Item deleted!'}), 200
+
