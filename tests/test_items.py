@@ -20,7 +20,7 @@ class ItemTest(BucketListApiTest):
             )),
             content_type='application/json')
 
-        self.assertIn(b"Item added!", response.data)
+        self.assertIn(b"Item has been added to bucketlist", response.data)
 
     def test_view_one_item_succes(self):
         '''test viewing all items work'''
