@@ -22,7 +22,7 @@ class BucketListTest(BucketListApiTest):
                                     user_id=1
                                 )),
                                 content_type='application/json')
-        self.assertIn(b"Bucket created!", testadd.data)
+        self.assertIn(b"newbucket", testadd.data)
 
     def test_view_one_bucket_succes(self):
         '''Test viewing a bucket is succesful'''
@@ -87,4 +87,4 @@ class BucketListTest(BucketListApiTest):
 
         response = self.app.delete('/bucketlists/1', headers=dict(
             token=[tkn]))
-        self.assertIn(b'Bucket list deleted!', response.data)
+        self.assertIn(b'Bucket list deleted', response.data)
