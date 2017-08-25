@@ -12,7 +12,7 @@ class BucketListApiTest(unittest.TestCase):
         self.app = app.test_client()
         app.config.from_object(config.TestConfig)
         db.create_all()
-        db.session.add(User(username='testuser', password=generate_password_hash(
+        db.session.add(User(firstname='testuser', lastname='testuser', username='testuser', email='testuser@testuser.com', password=generate_password_hash(
             'testpass', method='sha256')))
         db.session.add(Bucket(bucketname='testbucket', user_id=1))
         db.session.add(Bucket(bucketname='testbucket2', user_id=1))
