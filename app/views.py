@@ -1,7 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
-from flask import request, render_template, jsonify
+from flask import request, render_template, jsonify, make_response
 from flask_login import logout_user, current_user, UserMixin
 from functools import wraps
 from app import app, db
@@ -25,7 +25,7 @@ def token_required(f):
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'])
             current_user = User.query.filter_by(
-                username=data['username']).first()
+                username=data['username']).first(), 200
         except:
             return jsonify({'message': 'Token is invalid!'}), 401
         return f(current_user, *args, **kwargs)
@@ -73,22 +73,20 @@ def create_bucket(current_user):
     '''create a new bucket'''
     data = request.get_json()
     if 'bucketname' in data:
-        checkbucket = Bucket.query.filter_by(bucketname=data['bucketname']).first()
-        if not checkbucket:
-            bucket = Bucket.query.filter_by(
-                bucketname=data['bucketname'], user_id=current_user.id).first()
-            if bucket:
-                return jsonify({'message': 'Bucket name in use'}), 406
-            new_bucket = Bucket(
-                bucketname=data['bucketname'], user_id=current_user.id)
-            db.session.add(new_bucket)
-            db.session.commit()
-            bucket_data = {}
-            bucket_data['bucket_id'] = new_bucket.id
-            bucket_data['bucket_name'] = new_bucket.bucketname
-            bucket_data['user_id'] = new_bucket.user_id
-            return jsonify({'Bucket' : bucket_data}), 201
-        return jsonify({'message' : 'Bucket name in use'}), 401
+        bucket = Bucket.query.filter_by(
+            bucketname=data['bucketname'], user_id=current_user.id).first()
+        if bucket:
+            return make_response('Bucket name in use'), 206
+            # return jsonify({'message': 'Bucket name in use'}), 406
+        new_bucket = Bucket(
+            bucketname=data['bucketname'], user_id=current_user.id)
+        db.session.add(new_bucket)
+        db.session.commit()
+        bucket_data = {}
+        bucket_data['bucket_id'] = new_bucket.id
+        bucket_data['bucket_name'] = new_bucket.bucketname
+        bucket_data['user_id'] = new_bucket.user_id
+        return jsonify({'Bucket' : bucket_data}), 201
     return jsonify({'message': 'Please enter a bucket name'}), 400
 
 
@@ -179,12 +177,15 @@ def add_item(current_user, bucket_id):
     itm = Item.query.filter_by(
         itemname=item['itemname'], bucket_id=bucket_id).first()
     if itm:
-        return jsonify({'message': 'Item name in use'}), 301
+        return jsonify({'message': 'Item name in use'}), 205
     new_item = Item(itemname=item['itemname'],
                     status='Not Done', bucket_id=bucket_id)
     db.session.add(new_item)
     db.session.commit()
-    return jsonify({'message': "Item has been added to bucketlist"}), 200
+    item_data = {}
+    item_data['item_name'] = item['itemname']
+    # return jsonify({'items': output})
+    return jsonify(item_data), 200
 
 
 @app.route('/bucketlists/<bucket_id>/items', methods=['GET'])
@@ -254,7 +255,12 @@ def edit_item(current_user, bucket_id, item_id):
     item.itemname = data['newname']
     item.status = data['status']
     db.session.commit()
-    return jsonify({'message': 'Item has been updated!'}), 200
+    item_data = {}
+    item_data['bucket_id'] = item.bucket_id
+    item_data['item_id'] = item.id
+    item_data['item_name'] = item.itemname
+    item_data['item_status'] = item.status
+    return jsonify(item_data), 200
 
 
 @app.route('/bucketlists/<bucket_id>/items/<item_id>', methods=['DELETE'])
@@ -263,8 +269,7 @@ def delete_item(current_user, bucket_id, item_id):
     '''delete an item'''
     item = Item.query.filter_by(id=item_id, bucket_id=bucket_id).first()
     if not item:
-        return jsonify({'message': 'No item found!'}), 404
+        return jsonify({'message': 'Item with this id not found.'}), 404
     db.session.delete(item)
     db.session.commit()
-    return jsonify({'message': 'Item deleted!'}), 200
-
+    return jsonify({'message': 'Item has been deleted'}), 200
