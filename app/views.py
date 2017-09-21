@@ -108,15 +108,16 @@ def get_buckets(current_user):
     search = request.args.get('q')
     '''search for a bucket by its name'''
     if search:
-        bkt = Bucket.query.filter_by(
-            user_id=current_user.id, bucketname=search).first()
+        bkt = Bucket.query.filter_by(user_id = current_user.id).filter(
+            Bucket.bucketname.ilike('%' + search + '%')).all()
         if bkt:
-            bucket_info = {}
             output = []
-            bucket_info['user_id'] = bkt.user_id
-            bucket_info['bucket_name'] = bkt.bucketname
-            bucket_info['bucket_id'] = bkt.id
-            output.append(bucket_info)
+            for bkt in bkt:
+                bucket_info = {}  
+                bucket_info['user_id'] = bkt.user_id
+                bucket_info['bucket_name'] = bkt.bucketname
+                bucket_info['bucket_id'] = bkt.id
+                output.append(bucket_info)
             return jsonify({'Bucket': output}), 200
         return jsonify({'message': 'No bucket with this name for you.'}), 404
     '''limit the number of buckets to be returned in a query'''
