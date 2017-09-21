@@ -113,7 +113,7 @@ def get_buckets(current_user):
         if bkt:
             output = []
             for bkt in bkt:
-                bucket_info = {}  
+                bucket_info = {}
                 bucket_info['user_id'] = bkt.user_id
                 bucket_info['bucket_name'] = bkt.bucketname
                 bucket_info['bucket_id'] = bkt.id
@@ -230,43 +230,59 @@ def add_item(current_user, bucket_id):
 def get_items(current_user, bucket_id):
     '''return all items in a bucket list for the user identified by a token'''
     search = request.args.get('q')
-    limit = request.args.get('limit')
-    '''search for an item by its name'''
+    #search for an item by its name
     if search:
-        item = Item.query.filter_by(bucket_id=bucket_id, itemname=search).first()
+        items = Item.query.filter_by(bucket_id=bucket_id).filter(
+            Item.itemname.ilike('%' + search + '%')).all()
         output = []
-        if item:
-            item_data = {}
-            output = []
-            item_data['item_id'] = item.id
-            item_data['item_name'] = item.itemname
-            item_data['item_status'] = item.status
-            output.append(item_data)
+        if items:
+            for item in items:
+                item_data = {}
+                item_data['item_id'] = item.id
+                item_data['item_name'] = item.itemname
+                item_data['item_status'] = item.status
+                output.append(item_data)
             return jsonify({'items': output})
         return jsonify({'message': 'Item not found'}), 404
+
+    
     '''limit the number of items to be returned in a query'''
+    url = '/bucketlists/' + bucket_id + '/items'
+
+    if request.args.get("page"):
+        page = int(request.args.get("page"))
+    else:
+        page = 1
     limit = request.args.get('limit')
-    if limit:
-        items = Item.query.filter_by(bucket_id=bucket_id).limit(int(limit))
-        output = []
-        for item in items:
-            item_data = {}
-            item_data['item_id'] = item.id
-            item_data['item_name'] = item.itemname
-            item_data['item_status'] = item.status
-            output.append(item_data)
-        return jsonify({'items': output}), 200
-    '''return all items in a bucket list'''
-    items = Item.query.filter_by(bucket_id=bucket_id).all()
+    if limit and int(limit) < 10:
+        limit = int(request.args.get('limit'))
+    else:
+        limit = 10
+
+    items = Item.query.filter_by(
+        bucket_id=bucket_id).paginate(page, limit, False)
+    
+    if items.has_next:
+        next_page = url + '?page=' + str(
+                            page + 1) + '&limit=' + str(limit)
+    else:
+        next_page = ""
+
+    if items.has_prev:
+        previous_page = url + '?page=' + str(
+                            page - 1) + '&limit=' + str(limit)
+    else:
+        previous_page = ""
+        
     output = []
-    for item in items:
+    for item in items.items:
         item_data = {}
-        item_data['item_name'] = item.itemname
         item_data['item_id'] = item.id
-        item_data['bucket_id'] = item.bucket_id
+        item_data['item_name'] = item.itemname
         item_data['item_status'] = item.status
         output.append(item_data)
-    return jsonify({'items': output}), 200
+    return jsonify({'items': output, "next_page": next_page,
+                    "previous_page": previous_page}), 200
 
 
 @app.route('/bucketlists/<bucket_id>/items/<item_id>', methods=['GET'])
