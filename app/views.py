@@ -44,8 +44,7 @@ def create_user():
     '''Create a new account, using first name, last name, username, email and password'''
     request.get_json(force=True)
     data = request.get_json()
-    if not re.match("[^@]+@[^@]+\.[^@]+", data['email']):
-        return jsonify({'message': 'Email format is wrong. Enter a valid email address.'}), 201
+
     checkuser = User.query.filter_by(username=data['username']).first()
     '''ensure username is unique'''
     if not checkuser:
