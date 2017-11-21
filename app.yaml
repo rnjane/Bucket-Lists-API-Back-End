@@ -3,7 +3,7 @@
 # https://developers.google.com/appengine/docs/python/config/appconfig
 # for details.
 
-runtime: python27
+runtime: python3
 api_version: 1
 threadsafe: yes
 
