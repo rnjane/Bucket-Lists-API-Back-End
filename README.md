@@ -18,4 +18,4 @@
   * Python - Flask
   * Postgre sql
   * Bootstrap
-  
+ 
