@@ -15,7 +15,7 @@
 # )
 
 SECRET_KEY = "mysecretalone"
-SQLALCHEMY_DATABASE_URI = 'postgresql://rysxbcmtfrizgg:f83aa7c7c22300b62cd5cf475948efd146a33136c06b8029d44645a688e7d57c@ec2-184-73-236-170.compute-1.amazonaws.com/db7ai5ug00k7do'
+SQLALCHEMY_DATABASE_URI = 'postgres://uycbaccjqarraa:80a7f82339090c38f6c23e37232e55e49de51befc2014eddf4d7c4dfb0f6d4df@ec2-54-235-219-113.compute-1.amazonaws.com:5432/d4a1q3rqevudhl'
 CSRF_ENABLED = True
 USER_ENABLE_EMAIL = False
 SQLALCHEMY_TRACK_MODIFICATIONS = True
