@@ -4,7 +4,6 @@ from flask_migrate import Migrate, MigrateCommand
 
 from app import app, db
 
-
 app.config.from_object('config')
 
 migrate = Migrate(app, db)
